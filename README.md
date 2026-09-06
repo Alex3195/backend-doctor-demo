@@ -68,7 +68,7 @@ deliberately, measured, explained, fixed, and measured again. See
 
 | # | Problem | Status |
 |---|---|---|
-| 1 | N+1 query on `/api/orders` | Introduced, not yet fixed |
+| 1 | N+1 query on `/api/orders` | Fixed (`after-n-plus-one-query`) |
 | 2 | Missing index on `orders.customer_id` | Introduced, not yet fixed |
 | 3 | Offset pagination on large tables | Not yet introduced |
 | 4 | Long-held transaction around external call | Not yet introduced |
