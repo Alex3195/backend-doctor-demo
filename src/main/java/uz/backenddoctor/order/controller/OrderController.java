@@ -1,7 +1,9 @@
 package uz.backenddoctor.order.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uz.backenddoctor.order.dto.OrderSummary;
 import uz.backenddoctor.order.service.OrderService;
@@ -50,5 +52,28 @@ public class OrderController {
     @GetMapping("/api/orders/optimized/dto-projection")
     public List<OrderSummary> getAllOrdersDtoProjection() {
         return orderService.findAllOrdersDtoProjection();
+    }
+
+    /**
+     * ISSUE #003 -- deliberately unoptimized OFFSET pagination.
+     * Use this to capture "Before" numbers: response time at page 0 vs.
+     * a page deep into the table (see OrderService.findOrdersPageOffset()).
+     */
+    @GetMapping("/api/orders/page")
+    public Page<OrderSummary> getOrdersPageOffset(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return orderService.findOrdersPageOffset(page, size);
+    }
+
+    /**
+     * Fix #003 -- keyset pagination. Pass the last "orderId" seen as
+     * "cursor" to get the next page; omit it for the first page.
+     */
+    @GetMapping("/api/orders/keyset")
+    public List<OrderSummary> getOrdersKeyset(
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "20") int size) {
+        return orderService.findOrdersKeyset(cursor, size);
     }
 }

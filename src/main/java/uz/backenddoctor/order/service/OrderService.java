@@ -1,6 +1,9 @@
 package uz.backenddoctor.order.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uz.backenddoctor.order.dto.OrderSummary;
 import uz.backenddoctor.order.entity.Order;
@@ -87,5 +90,22 @@ public class OrderService {
      */
     public List<OrderSummary> findAllOrdersDtoProjection() {
         return orderRepository.findAllOrderSummaries();
+    }
+
+    /**
+     * ISSUE #003 -- OFFSET PAGINATION (intentional, this is the "before" state).
+     * See OrderRepository.findAllOrderSummariesOffset() for why this gets
+     * slower the deeper the page.
+     */
+    public Page<OrderSummary> findOrdersPageOffset(int page, int size) {
+        return orderRepository.findAllOrderSummariesOffset(
+                PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
+    }
+
+    /**
+     * Fix #003 -- keyset pagination. See OrderRepository.findOrderSummariesKeyset().
+     */
+    public List<OrderSummary> findOrdersKeyset(Long cursorId, int size) {
+        return orderRepository.findOrderSummariesKeyset(cursorId, PageRequest.of(0, size));
     }
 }
