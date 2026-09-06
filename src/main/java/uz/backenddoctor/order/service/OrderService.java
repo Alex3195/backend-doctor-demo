@@ -46,4 +46,46 @@ public class OrderService {
                 ))
                 .toList();
     }
+
+    /**
+     * Fix #1 -- JOIN FETCH. One SELECT total: the join pulls customer
+     * columns into the same result set, so accessing getCustomer() below
+     * never triggers a second query.
+     */
+    public List<OrderSummary> findAllOrdersJoinFetch() {
+        return orderRepository.findAllWithCustomerJoinFetch().stream()
+                .map(order -> new OrderSummary(
+                        order.getId(),
+                        order.getCustomer().getFullName(),
+                        order.getStatus(),
+                        order.getTotalAmount(),
+                        order.getCreatedAt()
+                ))
+                .toList();
+    }
+
+    /**
+     * Fix #2 -- @EntityGraph. Same one-SELECT result as JOIN FETCH, just
+     * declared via annotation instead of a hand-written join.
+     */
+    public List<OrderSummary> findAllOrdersEntityGraph() {
+        return orderRepository.findAllWithCustomerEntityGraph().stream()
+                .map(order -> new OrderSummary(
+                        order.getId(),
+                        order.getCustomer().getFullName(),
+                        order.getStatus(),
+                        order.getTotalAmount(),
+                        order.getCreatedAt()
+                ))
+                .toList();
+    }
+
+    /**
+     * Fix #3 -- DTO projection. One SELECT, and it's the cheapest of the
+     * three: only the columns the API returns are read, no full Order or
+     * Customer entities are materialized.
+     */
+    public List<OrderSummary> findAllOrdersDtoProjection() {
+        return orderRepository.findAllOrderSummaries();
+    }
 }
