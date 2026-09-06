@@ -14,7 +14,7 @@ deliberately, measured, explained, fixed, and measured again. See
 - Spring Boot 3.3 (Web, Data JPA, Actuator, Validation)
 - PostgreSQL 16
 - Flyway (schema migrations)
-- Redis (wired in later, Phase 4)
+- Redis (caching, Phase 4)
 - Kafka (wired in later, Phase 4)
 
 ## Running locally
@@ -62,7 +62,8 @@ deliberately, measured, explained, fixed, and measured again. See
 - [x] Phase 3: fix long-held transaction around external payment call
 - [x] Phase 3: fix overselling / race condition on `products.stock`
 - [ ] Phase 3: thread pool vs. connection pool
-- [ ] Phase 4: Redis caching, Kafka async processing
+- [x] Phase 4: Redis caching for a hot read path
+- [ ] Phase 4: Kafka async processing
 - [ ] Phase 5: load testing (JMeter/Gatling), metrics, Grafana
 - [ ] Phase 6: before/after benchmark write-up, polished audit report
 
@@ -75,7 +76,7 @@ deliberately, measured, explained, fixed, and measured again. See
 | 3 | Offset pagination on large tables | Fixed (`issue-3-offset-pagination-fix`) |
 | 4 | Long-held transaction around external call | Fixed (`issue-4-long-transaction-fix`) |
 | 5 | Overselling / race condition on `products.stock` | Fixed (`issue-5-overselling-fix`) |
-| 6 | No caching for hot read path | Not yet introduced |
+| 6 | No caching for hot read path | Fixed (`issue-6-no-caching-fix`) |
 | 7 | Synchronous side effects on order creation | Not yet introduced |
 | 8 | Thread pool vs. DB connection pool mismatch | Not yet introduced |
 | 9 | Loading full result sets into memory | Not yet introduced |
