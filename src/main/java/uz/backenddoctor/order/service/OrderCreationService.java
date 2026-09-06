@@ -9,6 +9,8 @@ import uz.backenddoctor.order.dto.CreateOrderRequest;
 import uz.backenddoctor.order.entity.Order;
 import uz.backenddoctor.order.entity.OrderItem;
 import uz.backenddoctor.order.entity.OrderStatus;
+import uz.backenddoctor.order.event.OrderCreatedEvent;
+import uz.backenddoctor.order.event.OrderEventProducer;
 import uz.backenddoctor.order.repository.OrderItemRepository;
 import uz.backenddoctor.order.repository.OrderRepository;
 import uz.backenddoctor.payment.client.PaymentGatewayClient;
@@ -30,6 +32,7 @@ public class OrderCreationService {
     private final PaymentRepository paymentRepository;
     private final PaymentGatewayClient paymentGatewayClient;
     private final OrderTransactionService orderTransactionService;
+    private final OrderEventProducer orderEventProducer;
 
     /**
      * ISSUE #004 -- LONG-HELD TRANSACTION AROUND AN EXTERNAL CALL
@@ -105,6 +108,13 @@ public class OrderCreationService {
 
         boolean charged = paymentGatewayClient.charge(order.getTotalAmount());
 
-        return orderTransactionService.finalizeOrder(order.getId(), charged);
+        Order finalized = orderTransactionService.finalizeOrder(order.getId(), charged);
+
+        // Fix #007 -- publish instead of sending synchronously. See
+        // OrderEventProducer / OrderCreatedEventListener.
+        orderEventProducer.publishOrderCreated(
+                new OrderCreatedEvent(finalized.getId(), request.customerId(), finalized.getTotalAmount()));
+
+        return finalized;
     }
 }
