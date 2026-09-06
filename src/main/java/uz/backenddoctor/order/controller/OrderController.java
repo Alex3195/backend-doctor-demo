@@ -27,4 +27,28 @@ public class OrderController {
     public List<OrderSummary> getAllOrders() {
         return orderService.findAllOrdersUnoptimized();
     }
+
+    /**
+     * Phase 2 fix, JOIN FETCH variant -- see OrderService.findAllOrdersJoinFetch().
+     */
+    @GetMapping("/api/orders/optimized/join-fetch")
+    public List<OrderSummary> getAllOrdersJoinFetch() {
+        return orderService.findAllOrdersJoinFetch();
+    }
+
+    /**
+     * Phase 2 fix, @EntityGraph variant -- see OrderService.findAllOrdersEntityGraph().
+     */
+    @GetMapping("/api/orders/optimized/entity-graph")
+    public List<OrderSummary> getAllOrdersEntityGraph() {
+        return orderService.findAllOrdersEntityGraph();
+    }
+
+    /**
+     * Phase 2 fix, DTO projection variant -- see OrderService.findAllOrdersDtoProjection().
+     */
+    @GetMapping("/api/orders/optimized/dto-projection")
+    public List<OrderSummary> getAllOrdersDtoProjection() {
+        return orderService.findAllOrdersDtoProjection();
+    }
 }
