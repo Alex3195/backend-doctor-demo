@@ -58,7 +58,7 @@ deliberately, measured, explained, fixed, and measured again. See
 - [x] Baseline `/api/orders` endpoint with an intentional N+1 query
 - [x] Phase 2: fix N+1 (JOIN FETCH / `@EntityGraph` / DTO projection)
 - [x] Phase 2: add missing index on `orders.customer_id`
-- [ ] Phase 2: keyset pagination
+- [x] Phase 2: keyset pagination
 - [ ] Phase 3: transaction boundaries, concurrency / overselling, thread pool
       vs. connection pool
 - [ ] Phase 4: Redis caching, Kafka async processing
@@ -71,7 +71,7 @@ deliberately, measured, explained, fixed, and measured again. See
 |---|---|---|
 | 1 | N+1 query on `/api/orders` | Fixed (`after-n-plus-one-query`) |
 | 2 | Missing index on `orders.customer_id` | Fixed (`issue-2-missing-index-fix`) |
-| 3 | Offset pagination on large tables | Not yet introduced |
+| 3 | Offset pagination on large tables | Fixed (`issue-3-offset-pagination-fix`) |
 | 4 | Long-held transaction around external call | Not yet introduced |
 | 5 | Overselling / race condition on `products.stock` | Not yet introduced |
 | 6 | No caching for hot read path | Not yet introduced |
