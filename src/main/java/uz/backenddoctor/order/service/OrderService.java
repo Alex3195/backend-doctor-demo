@@ -1,0 +1,49 @@
+package uz.backenddoctor.order.service;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import uz.backenddoctor.order.dto.OrderSummary;
+import uz.backenddoctor.order.entity.Order;
+import uz.backenddoctor.order.repository.OrderRepository;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+
+    /**
+     * ISSUE #001 -- N+1 QUERY (intentional, this is the "before" state).
+     *
+     * findAll() issues exactly one SELECT for orders. But because
+     * Order.customer is FetchType.LAZY, calling order.getCustomer().getFullName()
+     * for each order triggers a SEPARATE "SELECT * FROM customers WHERE id = ?"
+     * per order.
+     *
+     * For 20,000 orders spread across ~5,000 customers, expect roughly
+     * 1 + N queries where N is the number of distinct customers actually
+     * touched in this page/result set -- watch the console with
+     * show-sql: true and hibernate.generate_statistics: true.
+     *
+     * Audit note: this is exactly the OrderService.java:87-style issue
+     * from the original audit template. Do not "fix" this method directly --
+     * add findAllOrdersOptimized() alongside it (JOIN FETCH / @EntityGraph /
+     * DTO projection) so you can benchmark before vs. after and keep both
+     * for the case study.
+     */
+    public List<OrderSummary> findAllOrdersUnoptimized() {
+        List<Order> orders = orderRepository.findAll();
+
+        return orders.stream()
+                .map(order -> new OrderSummary(
+                        order.getId(),
+                        order.getCustomer().getFullName(), // <-- triggers the extra SELECT
+                        order.getStatus(),
+                        order.getTotalAmount(),
+                        order.getCreatedAt()
+                ))
+                .toList();
+    }
+}

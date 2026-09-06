@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: backend-doctor-postgres
+    environment:
+      POSTGRES_DB: backend_doctor
+      POSTGRES_USER: backend_doctor
+      POSTGRES_PASSWORD: backend_doctor
+    ports:
+      - "5432:5432"
+    volumes:
+      - backend_doctor_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U backend_doctor"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Not used yet -- wired in during Phase 4 (caching).
+  redis:
+    image: redis:7
+    container_name: backend-doctor-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  backend_doctor_pg_data:
