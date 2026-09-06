@@ -61,7 +61,7 @@ deliberately, measured, explained, fixed, and measured again. See
 - [x] Phase 2: keyset pagination
 - [x] Phase 3: fix long-held transaction around external payment call
 - [x] Phase 3: fix overselling / race condition on `products.stock`
-- [ ] Phase 3: thread pool vs. connection pool
+- [x] Phase 3: fix thread pool vs. connection pool mismatch (actuator on a separate port)
 - [x] Phase 4: Redis caching for a hot read path
 - [x] Phase 4: Kafka async processing (order confirmation notification)
 - [ ] Phase 5: load testing (JMeter/Gatling), metrics, Grafana
@@ -78,7 +78,7 @@ deliberately, measured, explained, fixed, and measured again. See
 | 5 | Overselling / race condition on `products.stock` | Fixed (`issue-5-overselling-fix`) |
 | 6 | No caching for hot read path | Fixed (`issue-6-no-caching-fix`) |
 | 7 | Synchronous side effects on order creation | Fixed (`issue-7-sync-side-effects-fix`) |
-| 8 | Thread pool vs. DB connection pool mismatch | Not yet introduced |
+| 8 | Thread pool vs. DB connection pool mismatch | Fixed (`issue-8-pool-mismatch-fix`) |
 | 9 | Loading full result sets into memory | Not yet introduced |
 | 10 | Slow aggregation queries at scale | Not yet introduced |
 
