@@ -57,6 +57,13 @@ spring:
         spring.json.trusted.packages: "uz.backenddoctor.order.event"
 
 management:
+  # Fix #008 -- a separate port means actuator gets its own embedded
+  # Tomcat connector with its own thread pool, independent of the main
+  # application's (server.port above). A burst that exhausts the main
+  # pool waiting on the (much smaller) Hikari pool can no longer take
+  # /actuator/health down with it. See docs/audit/008-pool-mismatch.md.
+  server:
+    port: 8081
   endpoints:
     web:
       exposure:
