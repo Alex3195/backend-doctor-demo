@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uz.backenddoctor.order.dto.CreateOrderRequest;
 import uz.backenddoctor.order.dto.OrderSummary;
+import uz.backenddoctor.order.entity.Order;
 import uz.backenddoctor.order.service.OrderCreationService;
 import uz.backenddoctor.order.service.OrderService;
 
@@ -92,6 +93,20 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public OrderSummary createOrder(@RequestBody CreateOrderRequest request) {
         var order = orderCreationService.createOrderLongTransaction(request);
+        return toSummary(order);
+    }
+
+    /**
+     * Fix #004 -- see OrderCreationService.createOrderFast().
+     */
+    @PostMapping("/api/orders/fast-checkout")
+    @ResponseStatus(HttpStatus.CREATED)
+    public OrderSummary createOrderFastCheckout(@RequestBody CreateOrderRequest request) {
+        var order = orderCreationService.createOrderFast(request);
+        return toSummary(order);
+    }
+
+    private OrderSummary toSummary(Order order) {
         return new OrderSummary(
                 order.getId(),
                 order.getCustomer().getFullName(),

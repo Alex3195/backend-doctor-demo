@@ -34,33 +34,67 @@ milliseconds ends up held for hundreds of milliseconds, and the pool
 than it should under concurrent load.
 
 ### Fix
-Split the flow into two short transactions around the external call,
-which now happens with **no DB connection held**:
+Splitting the transaction turned out to need **two** changes, not one
+-- the first one alone didn't work, which is worth documenting because
+it's a real, easy-to-miss trap.
+
+**Attempt 1 (incomplete): split into two short transactions.**
 1. `OrderTransactionService.reserveOrder()` (`@Transactional`) --
    decrements stock, inserts the order (`PENDING_PAYMENT`) and its
-   item. Commits and releases the connection immediately.
+   item.
 2. `OrderCreationService.createOrderFast()` (NOT transactional) --
-   calls `reserveOrder()`, then `paymentGatewayClient.charge()`
-   outside of any transaction, then `finalizeOrder()`.
+   calls `reserveOrder()`, then `paymentGatewayClient.charge()`,
+   then `finalizeOrder()`.
 3. `OrderTransactionService.finalizeOrder()` (`@Transactional`) --
-   updates the order to `PAID`/`CANCELLED` and inserts the `Payment`
-   row. Another short transaction.
+   updates the order to `PAID`/`CANCELLED`, inserts the `Payment` row.
 
-Note: `reserveOrder()` and `finalizeOrder()` had to live in a
-*separate* Spring bean (`OrderTransactionService`) from the
-orchestrating method. Calling `this.reserveOrder()` from within the
-same class bypasses Spring's proxy-based `@Transactional` (the
-well-known self-invocation gotcha) -- the annotation would be silently
-ignored and the two writes in `reserveOrder()` wouldn't be atomic.
+   (`reserveOrder()`/`finalizeOrder()` had to live in a *separate*
+   Spring bean from the orchestrating method -- calling
+   `this.reserveOrder()` from within the same class bypasses Spring's
+   proxy-based `@Transactional`, the well-known self-invocation gotcha,
+   and the two writes wouldn't be atomic.)
+
+   Re-running the load test after this change alone: **no
+   improvement** -- 40 concurrent still took ~0.76s, same batching
+   pattern as before. Splitting the transaction didn't actually
+   shorten how long the connection was held.
+
+**Root cause of attempt 1 not working:** `spring.jpa.open-in-view`
+defaults to `true`. It keeps a Hibernate session -- and the physical
+JDBC connection bound to it -- open for the **entire HTTP request**,
+not just inside `@Transactional`. So even with two short transactions,
+the connection stayed checked out across the whole request, external
+call included, exactly as before.
+
+**Attempt 2 (the actual fix): also set `spring.jpa.open-in-view: false`.**
+With OSIV off, the connection really is released the moment each
+`@Transactional` method returns. This immediately surfaced a second,
+related bug: `order.getCustomer()` is `FetchType.LAZY`, and the
+controller was reading `order.getCustomer().getFullName()` *after*
+`finalizeOrder()` returned -- with no session left to lazily load it,
+every concurrent request started throwing
+`LazyInitializationException: could not initialize proxy ... no
+Session` (a real bug caught mid-benchmark, not a hypothetical one).
+Fixed by calling `Hibernate.initialize(order.getCustomer())` at the
+end of `finalizeOrder()`, while its transaction (and session) is still
+open.
 
 ### After
-Same load test against `POST /api/orders/fast-checkout`:
+Same load test against `POST /api/orders/fast-checkout`, `open-in-view: false`,
+all requests returning `201` (no more `LazyInitializationException`):
 
 | Concurrent requests | Total time |
 |---|---|
-| 1 | _(fill in once benchmarked)_ |
-| 40 | _(fill in once benchmarked)_ |
-| 100 | _(fill in once benchmarked)_ |
+| 1 | ~0.34s |
+| 40 | ~0.37s (all requests finish within a tight ~0.31-0.37s band -- no batching) |
+| 100 | ~0.84s |
 
 ### Improvement
-_(fill in once benchmarked)_
+- 40 concurrent: 0.80s → 0.37s (~54% faster), and the batching pattern
+  (some requests ~2x slower than others) is gone entirely.
+- 100 concurrent: 1.74s → 0.84s (~52% faster).
+- The real lesson isn't "split the transaction" by itself -- it's that
+  `open-in-view` can silently undo that split, and turning it off
+  requires auditing every lazy field touched outside a
+  `@Transactional` method (one such bug was caught here by the load
+  test itself).
