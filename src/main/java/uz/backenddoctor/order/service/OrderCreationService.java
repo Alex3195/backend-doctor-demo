@@ -30,6 +30,7 @@ public class OrderCreationService {
     private final PaymentRepository paymentRepository;
     private final PaymentGatewayClient paymentGatewayClient;
     private final OrderTransactionService orderTransactionService;
+    private final NotificationService notificationService;
 
     /**
      * ISSUE #004 -- LONG-HELD TRANSACTION AROUND AN EXTERNAL CALL
@@ -105,6 +106,15 @@ public class OrderCreationService {
 
         boolean charged = paymentGatewayClient.charge(order.getTotalAmount());
 
-        return orderTransactionService.finalizeOrder(order.getId(), charged);
+        Order finalized = orderTransactionService.finalizeOrder(order.getId(), charged);
+
+        // ISSUE #007 -- SYNCHRONOUS SIDE EFFECT (intentional, this is the
+        // "before" state). Sending a confirmation notification has nothing
+        // to do with whether the order was created successfully -- the
+        // caller doesn't need to wait for it -- but this blocks the HTTP
+        // response for another ~250ms anyway.
+        notificationService.sendOrderConfirmation(finalized);
+
+        return finalized;
     }
 }
