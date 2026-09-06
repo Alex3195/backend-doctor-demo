@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import uz.backenddoctor.order.dto.OrderSummary;
 import uz.backenddoctor.order.entity.Order;
 
@@ -24,6 +25,18 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             "FROM Order o JOIN o.customer c ORDER BY o.id DESC",
             countQuery = "SELECT count(o) FROM Order o")
     Page<OrderSummary> findAllOrderSummariesOffset(Pageable pageable);
+
+    /**
+     * Fix #003 -- keyset (cursor) pagination. "id" is the primary key, so
+     * "id < :cursorId" is answered by an index range scan no matter how
+     * deep the cursor is -- cost doesn't grow with page depth the way
+     * OFFSET does. First page: pass cursorId = null.
+     */
+    @Query("SELECT new uz.backenddoctor.order.dto.OrderSummary(o.id, c.fullName, o.status, o.totalAmount, o.createdAt) " +
+            "FROM Order o JOIN o.customer c " +
+            "WHERE :cursorId IS NULL OR o.id < :cursorId " +
+            "ORDER BY o.id DESC")
+    List<OrderSummary> findOrderSummariesKeyset(@Param("cursorId") Long cursorId, Pageable pageable);
 
     // Fix #1 -- JOIN FETCH: one SELECT, customer columns pulled in via the join.
     @Query("SELECT o FROM Order o JOIN FETCH o.customer")

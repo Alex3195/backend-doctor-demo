@@ -65,4 +65,15 @@ public class OrderController {
             @RequestParam(defaultValue = "20") int size) {
         return orderService.findOrdersPageOffset(page, size);
     }
+
+    /**
+     * Fix #003 -- keyset pagination. Pass the last "orderId" seen as
+     * "cursor" to get the next page; omit it for the first page.
+     */
+    @GetMapping("/api/orders/keyset")
+    public List<OrderSummary> getOrdersKeyset(
+            @RequestParam(required = false) Long cursor,
+            @RequestParam(defaultValue = "20") int size) {
+        return orderService.findOrdersKeyset(cursor, size);
+    }
 }

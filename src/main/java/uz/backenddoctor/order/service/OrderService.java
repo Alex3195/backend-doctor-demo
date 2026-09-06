@@ -101,4 +101,11 @@ public class OrderService {
         return orderRepository.findAllOrderSummariesOffset(
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
     }
+
+    /**
+     * Fix #003 -- keyset pagination. See OrderRepository.findOrderSummariesKeyset().
+     */
+    public List<OrderSummary> findOrdersKeyset(Long cursorId, int size) {
+        return orderRepository.findOrderSummariesKeyset(cursorId, PageRequest.of(0, size));
+    }
 }
