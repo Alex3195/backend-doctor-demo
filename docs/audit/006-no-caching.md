@@ -36,18 +36,29 @@ underlying data actually changes.
 
 ### After
 Same measurement: 50 sequential requests for the same product ID,
-Redis cache enabled.
-- SQL queries: 1 (only the first request; confirmed via
-  `hibernate.generate_statistics` and by inspecting the key directly
-  with `redis-cli GET products::<id>`).
-- Total time: 0.183s (~3.7ms/request average).
+Redis cache enabled. Confirmed the key directly too:
+`redis-cli GET products::1` returns the cached
+`ProductSummary` JSON.
+
+- First 50-request batch right after startup (cold cache + first-ever
+  Redis connection): 1 SQL query (the initial cache miss), but total
+  time was 1.045s -- *slower* than the uncached baseline, because that
+  batch also pays the one-time cost of establishing the Lettuce/Redis
+  connection.
+- Second batch, same product ID, cache and connection now warm:
+  **0 SQL queries**, total time **0.612s**.
 
 ### Improvement
-- SQL queries: ~48 → 1 (~98% fewer DB round-trips for the same
-  traffic pattern).
-- Total time: 0.719s → 0.183s (~75% faster) for 50 requests, even
-  against a local Postgres instance with sub-millisecond query times --
-  the gap would be far larger against a real network-hop database.
+- SQL queries: ~46-50 → 0 (100% fewer DB round-trips once the entry is
+  cached) -- this is the real win, not raw latency.
+- Total time (steady state): 0.719s → 0.612s (~15% faster). Modest,
+  and it's worth saying plainly why: against a local Postgres with
+  sub-millisecond query times, the request/response and JSON
+  serialization overhead dominates, not the DB round-trip -- so on
+  this machine caching mostly buys *DB load reduction*, not dramatically
+  lower per-request latency. Against a real network-hop database (the
+  common case in production), the same 100% query reduction would
+  translate into a much larger latency win.
 - Trade-off: a 5 minute staleness window on product data (price/stock
   shown to a client could be up to 5 minutes old). Acceptable for a
   product detail read; would need a shorter TTL or explicit
