@@ -32,7 +32,19 @@ its own thread, completely decoupled from the HTTP request, and calls
 `NotificationService.sendOrderConfirmation()` there instead.
 
 ### After
-_(fill in once benchmarked)_
+Same measurement, notification now delivered via Kafka
+(`OrderCreatedEventListener`, confirmed processing on the Kafka
+consumer thread -- `Sent order confirmation for order ...` logged
+*after* the HTTP response had already been returned to the caller):
+
+- Single requests (warm): ~0.335s (down from ~0.58-0.59s) -- exactly
+  the ~250ms notification latency is gone from the response path.
+- 20 concurrent requests: 0.436s total (down from 0.667s).
 
 ### Improvement
-_(fill in once benchmarked)_
+- Single-request latency: ~0.58s → ~0.335s (~42% faster).
+- 20 concurrent: 0.667s → 0.436s (~35% faster).
+- The order's own success/failure no longer depends on, or waits for,
+  an unrelated side effect. A slow or temporarily-down notification
+  provider now only delays the notification -- it can no longer delay
+  or fail the order-creation response itself.
