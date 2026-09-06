@@ -50,14 +50,15 @@ deliberately, measured, explained, fixed, and measured again. See
    for the orders, then one additional `SELECT ... FROM customers WHERE id = ?`
    **per distinct customer** in the result set. That's Issue #001.
 
-## Status: Phase 1 complete
+## Status: Phase 2 in progress
 
 - [x] Project structure
 - [x] Schema (customers, products, orders, order_items, payments)
 - [x] Seed data generator
 - [x] Baseline `/api/orders` endpoint with an intentional N+1 query
-- [ ] Phase 2: fix N+1 (JOIN FETCH / `@EntityGraph` / DTO projection),
-      add missing index, keyset pagination
+- [x] Phase 2: fix N+1 (JOIN FETCH / `@EntityGraph` / DTO projection)
+- [x] Phase 2: add missing index on `orders.customer_id`
+- [ ] Phase 2: keyset pagination
 - [ ] Phase 3: transaction boundaries, concurrency / overselling, thread pool
       vs. connection pool
 - [ ] Phase 4: Redis caching, Kafka async processing
@@ -69,7 +70,7 @@ deliberately, measured, explained, fixed, and measured again. See
 | # | Problem | Status |
 |---|---|---|
 | 1 | N+1 query on `/api/orders` | Fixed (`after-n-plus-one-query`) |
-| 2 | Missing index on `orders.customer_id` | Introduced, not yet fixed |
+| 2 | Missing index on `orders.customer_id` | Fixed (`issue-2-missing-index-fix`) |
 | 3 | Offset pagination on large tables | Not yet introduced |
 | 4 | Long-held transaction around external call | Not yet introduced |
 | 5 | Overselling / race condition on `products.stock` | Not yet introduced |
