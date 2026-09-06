@@ -50,7 +50,7 @@ deliberately, measured, explained, fixed, and measured again. See
    for the orders, then one additional `SELECT ... FROM customers WHERE id = ?`
    **per distinct customer** in the result set. That's Issue #001.
 
-## Status: Phase 2 in progress
+## Status: Phase 3 in progress
 
 - [x] Project structure
 - [x] Schema (customers, products, orders, order_items, payments)
@@ -59,8 +59,8 @@ deliberately, measured, explained, fixed, and measured again. See
 - [x] Phase 2: fix N+1 (JOIN FETCH / `@EntityGraph` / DTO projection)
 - [x] Phase 2: add missing index on `orders.customer_id`
 - [x] Phase 2: keyset pagination
-- [ ] Phase 3: transaction boundaries, concurrency / overselling, thread pool
-      vs. connection pool
+- [x] Phase 3: fix long-held transaction around external payment call
+- [ ] Phase 3: concurrency / overselling, thread pool vs. connection pool
 - [ ] Phase 4: Redis caching, Kafka async processing
 - [ ] Phase 5: load testing (JMeter/Gatling), metrics, Grafana
 - [ ] Phase 6: before/after benchmark write-up, polished audit report
@@ -72,7 +72,7 @@ deliberately, measured, explained, fixed, and measured again. See
 | 1 | N+1 query on `/api/orders` | Fixed (`after-n-plus-one-query`) |
 | 2 | Missing index on `orders.customer_id` | Fixed (`issue-2-missing-index-fix`) |
 | 3 | Offset pagination on large tables | Fixed (`issue-3-offset-pagination-fix`) |
-| 4 | Long-held transaction around external call | Not yet introduced |
+| 4 | Long-held transaction around external call | Fixed (`issue-4-long-transaction-fix`) |
 | 5 | Overselling / race condition on `products.stock` | Not yet introduced |
 | 6 | No caching for hot read path | Not yet introduced |
 | 7 | Synchronous side effects on order creation | Not yet introduced |
