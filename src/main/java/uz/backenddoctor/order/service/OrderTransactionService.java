@@ -10,6 +10,7 @@ import uz.backenddoctor.order.dto.CreateOrderRequest;
 import uz.backenddoctor.order.entity.Order;
 import uz.backenddoctor.order.entity.OrderItem;
 import uz.backenddoctor.order.entity.OrderStatus;
+import uz.backenddoctor.order.exception.InsufficientStockException;
 import uz.backenddoctor.order.repository.OrderItemRepository;
 import uz.backenddoctor.order.repository.OrderRepository;
 import uz.backenddoctor.payment.entity.Payment;
@@ -43,11 +44,12 @@ public class OrderTransactionService {
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new IllegalArgumentException("Unknown product: " + request.productId()));
 
-        if (product.getStock() < request.quantity()) {
-            throw new IllegalStateException("Not enough stock for product " + product.getId());
+        // Fix #005 -- atomic, conditional decrement instead of
+        // read-check-write. See ProductRepository.decrementStockIfAvailable().
+        int updated = productRepository.decrementStockIfAvailable(product.getId(), request.quantity());
+        if (updated == 0) {
+            throw new InsufficientStockException("Not enough stock for product " + product.getId());
         }
-        product.setStock(product.getStock() - request.quantity());
-        productRepository.save(product);
 
         BigDecimal total = product.getPrice().multiply(BigDecimal.valueOf(request.quantity()));
 
