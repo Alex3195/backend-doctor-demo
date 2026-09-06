@@ -15,6 +15,12 @@ spring:
       maximum-pool-size: 20
 
   jpa:
+    # Fix #004, part 2: without this, Spring keeps a Hibernate session (and
+    # its DB connection) bound to the request thread for the ENTIRE HTTP
+    # request -- not just inside @Transactional -- so splitting a method
+    # into short transactions doesn't actually release the connection any
+    # sooner if open-in-view is still on. See docs/audit/004-long-transaction.md.
+    open-in-view: false
     hibernate:
       ddl-auto: validate   # schema is owned by Flyway, not Hibernate
     properties:
