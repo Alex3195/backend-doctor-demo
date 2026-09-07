@@ -6,10 +6,12 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import uz.backenddoctor.order.dto.DailyRevenueProjection;
 import uz.backenddoctor.order.dto.OrderSummary;
 import uz.backenddoctor.order.dto.RevenueByStatus;
 import uz.backenddoctor.order.entity.Order;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -62,4 +64,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT new uz.backenddoctor.order.dto.RevenueByStatus(o.status, SUM(o.totalAmount), COUNT(o)) " +
             "FROM Order o GROUP BY o.status ORDER BY o.status")
     List<RevenueByStatus> findRevenueByStatus();
+
+    /**
+     * ISSUE #010 -- SLOW AGGREGATION QUERY AT SCALE (intentional, this is
+     * the "before" state). No index on orders.created_at, so filtering by
+     * a date range forces a (parallel) sequential scan of the whole
+     * table before it can group/sum -- fine at a few thousand rows, but
+     * cost grows with table size since every row has to be checked
+     * against the date filter.
+     */
+    @Query(value = "SELECT date_trunc('day', created_at) AS day, SUM(total_amount) AS total, COUNT(*) AS cnt " +
+            "FROM orders WHERE created_at >= :since GROUP BY day ORDER BY day",
+            nativeQuery = true)
+    List<DailyRevenueProjection> findDailyRevenueSince(@Param("since") LocalDateTime since);
 }

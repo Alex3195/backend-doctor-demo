@@ -2,10 +2,12 @@ package uz.backenddoctor.order.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uz.backenddoctor.order.dto.DailyRevenue;
 import uz.backenddoctor.order.dto.RevenueByStatus;
 import uz.backenddoctor.order.entity.Order;
 import uz.backenddoctor.order.repository.OrderRepository;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -51,5 +53,19 @@ public class ReportService {
      */
     public List<RevenueByStatus> getRevenueByStatusAggregated() {
         return orderRepository.findRevenueByStatus();
+    }
+
+    /**
+     * ISSUE #010 -- see OrderRepository.findDailyRevenueSince().
+     */
+    public List<DailyRevenue> getDailyRevenue(int days) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        return orderRepository.findDailyRevenueSince(since).stream()
+                .map(p -> new DailyRevenue(
+                        p.getDay().toLocalDateTime().toLocalDate(),
+                        p.getTotal(),
+                        p.getCnt()
+                ))
+                .toList();
     }
 }
