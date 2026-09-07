@@ -1,0 +1,743 @@
+<title>Backend Doctor Report</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,500&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#f5f7f8;
+    --surface:#ffffff;
+    --surface-2:#eef2f3;
+    --ink:#1b242d;
+    --ink-2:#4b5964;
+    --ink-3:#7c8790;
+    --border:#dce2e6;
+    --border-strong:#c3cbd0;
+    --accent:#146c74;
+    --accent-ink:#0e565c;
+    --accent-wash:#e4f0f0;
+    --high:#b3271e;
+    --high-wash:#f9e9e7;
+    --medium:#8a6416;
+    --medium-wash:#f7f0df;
+    --good:#1f7a4d;
+    --good-wash:#e5f3ea;
+    --code-bg:#101820;
+    --code-ink:#d6e2e6;
+    --code-muted:#7f96a0;
+    --shadow: 0 1px 2px rgba(27,36,45,.06), 0 6px 20px -8px rgba(27,36,45,.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0e1418;
+      --surface:#161d22;
+      --surface-2:#1c242a;
+      --ink:#e7ecee;
+      --ink-2:#aab4ba;
+      --ink-3:#7f8b92;
+      --border:#2a343a;
+      --border-strong:#3a464d;
+      --accent:#5fd3da;
+      --accent-ink:#8fe3e8;
+      --accent-wash:#132a2c;
+      --high:#c24a5c;
+      --high-wash:#2a1418;
+      --medium:#bc8a1c;
+      --medium-wash:#2a2210;
+      --good:#3f9968;
+      --good-wash:#122a1e;
+      --code-bg:#0a1116;
+      --code-ink:#cddadf;
+      --code-muted:#6d838c;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -10px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0e1418;
+    --surface:#161d22;
+    --surface-2:#1c242a;
+    --ink:#e7ecee;
+    --ink-2:#aab4ba;
+    --ink-3:#7f8b92;
+    --border:#2a343a;
+    --border-strong:#3a464d;
+    --accent:#5fd3da;
+    --accent-ink:#8fe3e8;
+    --accent-wash:#132a2c;
+    --high:#c24a5c;
+    --high-wash:#2a1418;
+    --medium:#bc8a1c;
+    --medium-wash:#2a2210;
+    --good:#3f9968;
+    --good-wash:#122a1e;
+    --code-bg:#0a1116;
+    --code-ink:#cddadf;
+    --code-muted:#6d838c;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -10px rgba(0,0,0,.6);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:"Newsreader", ui-serif, Georgia, serif;
+    font-weight:600;
+    text-wrap:balance;
+    letter-spacing:-.01em;
+  }
+  a{color:var(--accent-ink);}
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    border-radius:2px;
+  }
+  .tabular{ font-variant-numeric: tabular-nums; }
+  code, .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px 96px; }
+
+  /* ---------- Masthead ---------- */
+  .masthead{
+    border-bottom:1px solid var(--border);
+    padding:56px 0 32px;
+  }
+  .masthead .kicker{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent-ink);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+  }
+  .masthead .kicker::before{
+    content:"";
+    width:8px; height:8px; border-radius:50%;
+    background:var(--good);
+    box-shadow:0 0 0 3px var(--good-wash);
+  }
+  .masthead h1{
+    font-size:clamp(2.1rem, 4.6vw, 3.1rem);
+    line-height:1.06;
+    margin:0 0 14px;
+  }
+  .masthead .sub{
+    max-width:62ch;
+    color:var(--ink-2);
+    font-size:1.08rem;
+  }
+  .masthead .sub em{ font-style:italic; color:var(--ink); }
+
+  .vitals{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:1px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:32px;
+  }
+  .vitals .cell{
+    background:var(--surface);
+    padding:18px 16px;
+  }
+  .vitals .num{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:1.65rem;
+    font-weight:600;
+    color:var(--ink);
+    display:block;
+  }
+  .vitals .lbl{
+    font-size:.78rem;
+    color:var(--ink-3);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin-top:4px;
+    display:block;
+  }
+  @media (max-width:640px){
+    .vitals{ grid-template-columns:repeat(2,1fr); }
+  }
+
+  /* ---------- Case index ---------- */
+  .index{ padding:40px 0; border-bottom:1px solid var(--border); }
+  .index h2{ font-size:1rem; text-transform:uppercase; letter-spacing:.08em; font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--ink-2); margin:0 0 16px;}
+  .index ol{ list-style:none; margin:0; padding:0; border-top:1px solid var(--border); }
+  .index li{ border-bottom:1px solid var(--border); }
+  .index a.row{
+    display:grid;
+    grid-template-columns:2.4em 1fr auto auto;
+    align-items:center;
+    gap:14px;
+    padding:12px 6px;
+    text-decoration:none;
+    color:var(--ink);
+    transition:background-color .12s ease;
+  }
+  .index a.row:hover{ background:var(--surface-2); }
+  .index .no{ font-family:"IBM Plex Mono",monospace; color:var(--ink-3); font-size:.85rem; }
+  .index .title{ font-weight:500; }
+  .index .result{ color:var(--ink-2); font-size:.9rem; text-align:right; white-space:nowrap; }
+  @media (max-width:640px){
+    .index a.row{ grid-template-columns:2em 1fr; }
+    .index .result{ grid-column:2; text-align:left; }
+  }
+
+  .chip{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.72rem; letter-spacing:.05em; text-transform:uppercase;
+    padding:3px 8px; border-radius:5px; font-weight:600;
+    white-space:nowrap;
+  }
+  .chip::before{ content:""; width:6px; height:6px; border-radius:50%; }
+  .chip.high{ background:var(--high-wash); color:var(--high); }
+  .chip.high::before{ background:var(--high); }
+  .chip.medium{ background:var(--medium-wash); color:var(--medium); }
+  .chip.medium::before{ background:var(--medium); }
+
+  /* ---------- Cases ---------- */
+  .case{
+    padding:56px 0;
+    border-bottom:1px solid var(--border);
+    scroll-margin-top:20px;
+  }
+  .case-head{
+    display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+  .case-no{
+    font-family:"IBM Plex Mono",monospace;
+    color:var(--ink-3);
+    font-size:.95rem;
+  }
+  .case h2{ font-size:1.55rem; margin:2px 0 20px; }
+
+  .field{ margin:18px 0; }
+  .field .k{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-3);
+    display:block; margin-bottom:6px;
+  }
+  .field .v{ color:var(--ink); max-width:70ch; }
+  .field .v p{ margin:0 0 8px; }
+  .field .v p:last-child{ margin-bottom:0; }
+
+  pre.readout{
+    background:var(--code-bg);
+    color:var(--code-ink);
+    border-radius:8px;
+    padding:14px 16px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.78rem;
+    line-height:1.55;
+    overflow-x:auto;
+    margin:10px 0 0;
+  }
+  pre.readout .dim{ color:var(--code-muted); }
+
+  .vitals-strip{
+    display:flex; align-items:stretch; gap:0;
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin:22px 0 8px;
+    background:var(--surface);
+  }
+  .vitals-strip .stat{
+    flex:1; padding:16px 18px; min-width:0;
+  }
+  .vitals-strip .stat + .stat{ border-left:1px solid var(--border); }
+  .vitals-strip .stat .tag{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.68rem; letter-spacing:.08em; text-transform:uppercase;
+    display:block; margin-bottom:6px;
+  }
+  .vitals-strip .stat.before .tag{ color:var(--high); }
+  .vitals-strip .stat.after .tag{ color:var(--good); }
+  .vitals-strip .stat .big{
+    font-family:"IBM Plex Mono",monospace;
+    font-weight:600;
+    font-size:1.3rem;
+    display:block;
+    line-height:1.25;
+  }
+  .vitals-strip .stat .cap{ color:var(--ink-3); font-size:.82rem; margin-top:2px; display:block; }
+  .vitals-strip .arrow{
+    display:flex; align-items:center; justify-content:center;
+    width:44px; color:var(--ink-3); background:var(--surface-2);
+    border-left:1px solid var(--border); border-right:1px solid var(--border);
+    font-size:1.1rem;
+  }
+  @media (max-width:600px){
+    .vitals-strip{ flex-direction:column; }
+    .vitals-strip .stat + .stat{ border-left:none; border-top:1px solid var(--border); }
+    .vitals-strip .arrow{ width:auto; padding:6px; border:none; border-top:1px solid var(--border); border-bottom:1px solid var(--border); transform:rotate(90deg); }
+  }
+
+  .delta{
+    display:inline-block;
+    margin-top:14px;
+    font-family:"IBM Plex Mono",monospace;
+    font-weight:600;
+    font-size:.92rem;
+    color:var(--good);
+    background:var(--good-wash);
+    padding:5px 10px;
+    border-radius:6px;
+  }
+
+  .minitable{ width:100%; border-collapse:collapse; margin:14px 0 0; font-size:.9rem; }
+  .minitable th, .minitable td{ padding:7px 10px; border-bottom:1px solid var(--border); text-align:right; }
+  .minitable th:first-child, .minitable td:first-child{ text-align:left; }
+  .minitable th{ font-family:"IBM Plex Mono",monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:600; }
+  .minitable td.tabular{ font-family:"IBM Plex Mono",monospace; }
+  .minitable td.b{ color:var(--high); }
+  .minitable td.a{ color:var(--good); }
+
+  .note{
+    margin-top:20px;
+    padding:14px 16px;
+    background:var(--surface-2);
+    border-left:3px solid var(--medium);
+    border-radius:0 8px 8px 0;
+    font-size:.92rem;
+    color:var(--ink-2);
+  }
+  .note .k{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.7rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--medium); display:block; margin-bottom:5px; font-weight:600;
+  }
+
+  /* ---------- Methodology ---------- */
+  .method{ padding:52px 0; border-bottom:1px solid var(--border); }
+  .method h2{ font-size:1.5rem; margin:0 0 8px; }
+  .method .lede{ color:var(--ink-2); max-width:64ch; margin:0 0 28px; }
+  .tools{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+  @media (max-width:640px){ .tools{ grid-template-columns:1fr; } }
+  .tool{
+    border:1px solid var(--border); border-radius:10px; padding:16px 18px;
+    background:var(--surface);
+  }
+  .tool .name{ font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--accent-ink); font-size:.92rem; display:block; margin-bottom:6px;}
+  .tool p{ margin:0; color:var(--ink-2); font-size:.9rem; }
+
+  /* ---------- Sign-off ---------- */
+  .signoff{ padding:56px 0 0; text-align:left; }
+  .signoff .stamp{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:"IBM Plex Mono",monospace;
+    color:var(--good); font-weight:600; font-size:.95rem;
+    background:var(--good-wash); padding:8px 14px; border-radius:8px;
+    margin-bottom:18px;
+  }
+  .signoff .stamp::before{ content:"✓"; }
+  .signoff p{ max-width:60ch; color:var(--ink-2); }
+  .signoff a.repo{
+    display:inline-flex; align-items:center; gap:8px;
+    margin-top:10px; font-weight:600; text-decoration:none;
+    font-family:"IBM Plex Mono",monospace; font-size:.92rem;
+  }
+  .signoff a.repo:hover{ text-decoration:underline; }
+  .foot{ margin-top:40px; padding-top:20px; border-top:1px solid var(--border); color:var(--ink-3); font-size:.82rem; }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="kicker">Diagnostic complete · 10 / 10 resolved</div>
+    <h1>The Backend Doctor Report</h1>
+    <p class="sub">
+      A production-shaped Spring Boot service, seeded with realistic data volumes,
+      used to surface <em>ten</em> real backend performance and reliability
+      problems — each one introduced deliberately, measured, diagnosed, treated,
+      and measured again. No number on this page is invented: every reading below
+      came from <code>EXPLAIN ANALYZE</code>, Micrometer, Apache Bench, or Gatling
+      run against this exact codebase.
+    </p>
+    <div class="vitals">
+      <div class="cell"><span class="num tabular">10</span><span class="lbl">Cases resolved</span></div>
+      <div class="cell"><span class="num tabular">5 / 5</span><span class="lbl">High / medium severity</span></div>
+      <div class="cell"><span class="num tabular">3</span><span class="lbl">Schema migrations</span></div>
+      <div class="cell"><span class="num tabular">0</span><span class="lbl">Claims left unverified</span></div>
+    </div>
+  </header>
+
+  <nav class="index">
+    <h2>Case index</h2>
+    <ol>
+      <li><a class="row" href="#case-01"><span class="no tabular">01</span><span class="title">N+1 query on <code>GET /api/orders</code></span><span class="chip high">High</span><span class="result">4,904 → 1 query</span></a></li>
+      <li><a class="row" href="#case-02"><span class="no tabular">02</span><span class="title">Missing index on <code>orders.customer_id</code></span><span class="chip high">High</span><span class="result">2.2ms → 0.1ms</span></a></li>
+      <li><a class="row" href="#case-03"><span class="no tabular">03</span><span class="title">Offset pagination on large tables</span><span class="chip medium">Medium</span><span class="result">11.7ms → 0.13ms</span></a></li>
+      <li><a class="row" href="#case-04"><span class="no tabular">04</span><span class="title">Long-held transaction around an external call</span><span class="chip high">High</span><span class="result">1.74s → 0.84s @100c</span></a></li>
+      <li><a class="row" href="#case-05"><span class="no tabular">05</span><span class="title">Overselling / race condition on stock</span><span class="chip high">High</span><span class="result">20 oversold → 0</span></a></li>
+      <li><a class="row" href="#case-06"><span class="no tabular">06</span><span class="title">No caching for a hot read path</span><span class="chip medium">Medium</span><span class="result">48 → 0 queries</span></a></li>
+      <li><a class="row" href="#case-07"><span class="no tabular">07</span><span class="title">Synchronous side effect on order creation</span><span class="chip medium">Medium</span><span class="result">0.58s → 0.34s</span></a></li>
+      <li><a class="row" href="#case-08"><span class="no tabular">08</span><span class="title">Thread pool vs. DB connection pool mismatch</span><span class="chip high">High</span><span class="result">health isolated</span></a></li>
+      <li><a class="row" href="#case-09"><span class="no tabular">09</span><span class="title">Loading full result sets into memory</span><span class="chip medium">Medium</span><span class="result">35MB → ~0MB</span></a></li>
+      <li><a class="row" href="#case-10"><span class="no tabular">10</span><span class="title">Slow aggregation queries at scale</span><span class="chip medium">Medium</span><span class="result">37ms → 23ms</span></a></li>
+    </ol>
+  </nav>
+
+  <!-- ================= CASE 01 ================= -->
+  <section class="case" id="case-01">
+    <div class="case-head"><span class="case-no tabular">CASE 01</span><span class="chip high">High</span></div>
+    <h2>N+1 query on <code>GET /api/orders</code></h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      Listing orders calls <code>order.getCustomer().getFullName()</code> once per row. Because
+      <code>Order.customer</code> is <code>FetchType.LAZY</code>, that's a separate
+      <code>SELECT … FROM customers WHERE id = ?</code> for every distinct customer touched —
+      one query for the orders, then one more per customer.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      A lazy association read inside a result-mapping loop, with no batching or fetch strategy declared.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Added three alternative endpoints alongside the unoptimized baseline (kept as-is for the case
+      study): a hand-written <code>JOIN FETCH</code>, an <code>@EntityGraph</code>, and a DTO
+      projection that selects only the columns the API returns.
+    </p></div></div>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before</span><span class="big tabular">4,904 queries</span><span class="cap">1.3–1.6s response</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After</span><span class="big tabular">1 query</span><span class="cap">0.08–0.09s response (DTO projection)</span></div>
+    </div>
+    <span class="delta">−99.98% queries · −94% latency</span>
+  </section>
+
+  <!-- ================= CASE 02 ================= -->
+  <section class="case" id="case-02">
+    <div class="case-head"><span class="case-no tabular">CASE 02</span><span class="chip high">High</span></div>
+    <h2>Missing index on <code>orders.customer_id</code></h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      <code>SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC LIMIT 20</code>
+      falls back to a sequential scan once the table has a realistic row count.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>No index defined at schema design time.</p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Composite index <code>(customer_id, created_at DESC)</code> — covers both the equality filter
+      and the sort in one structure.
+    </p></div></div>
+
+    <pre class="readout"><span class="dim">-- before: Seq Scan on orders, 19998 of 20000 rows filtered out
+-- after:</span>
+Bitmap Heap Scan on orders  (actual time=0.035..0.051 rows=2)
+  Recheck Cond: (customer_id = 123)
+  -&gt;  Bitmap Index Scan on idx_orders_customer_created
+        Index Cond: (customer_id = 123)</pre>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before</span><span class="big tabular">2.196 ms</span><span class="cap">planner cost 417</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After</span><span class="big tabular">0.105 ms</span><span class="cap">planner cost 18.6</span></div>
+    </div>
+    <span class="delta">−95% execution time</span>
+  </section>
+
+  <!-- ================= CASE 03 ================= -->
+  <section class="case" id="case-03">
+    <div class="case-head"><span class="case-no tabular">CASE 03</span><span class="chip medium">Medium</span></div>
+    <h2>Offset pagination on large tables</h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      <code>GET /api/orders/page</code> uses Spring Data <code>Pageable</code>, executed as
+      <code>ORDER BY id DESC OFFSET ? LIMIT ?</code>. Postgres has to walk and discard every row
+      up to the offset — fine on page 0, costly on the last page.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      <code>OFFSET</code> cost is <em>O(offset)</em>, not <em>O(page size)</em> — it degrades as
+      users page deeper, and gets worse (not better) as the table grows.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Keyset (cursor) pagination — <code>WHERE id &lt; :cursor ORDER BY id DESC LIMIT :size</code>.
+      Since <code>id</code> is the primary key, this is an index range scan regardless of depth.
+    </p></div></div>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before · deep page</span><span class="big tabular">11.701 ms</span><span class="cap">Seq Scan + Sort, full table</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After · same depth</span><span class="big tabular">0.129 ms</span><span class="cap">Index Scan Backward</span></div>
+    </div>
+    <span class="delta">−99% at depth · flat regardless of depth</span>
+
+    <div class="note"><span class="k">Trade-off</span>Keyset pagination can jump to "next" from a cursor, not to an arbitrary page number — right for infinite scroll and API consumers, wrong for a "jump to page 47" UI.</div>
+  </section>
+
+  <!-- ================= CASE 04 ================= -->
+  <section class="case" id="case-04">
+    <div class="case-head"><span class="case-no tabular">CASE 04</span><span class="chip high">High</span></div>
+    <h2>Long-held transaction around an external call</h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      Order creation is <code>@Transactional</code> end to end, including a simulated ~300ms
+      payment-gateway call. The Hikari connection (pool size 20, intentionally small) sits
+      checked out for the whole thing, payment latency included.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      A network call unrelated to the database sits inside the same transaction boundary as the
+      writes — a resource meant to be held for milliseconds ends up held for hundreds of them.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Took two attempts, and the first one looked right but wasn't. <strong>Attempt 1</strong> —
+      split into two short transactions in a separate bean (to dodge Spring's self-invocation
+      trap). Re-benchmarked: <em>no improvement whatsoever</em> — same batching as before.
+      <strong>Root cause of that failure:</strong> <code>spring.jpa.open-in-view</code> defaults to
+      <code>true</code> and keeps the connection bound to the entire HTTP request, not just inside
+      <code>@Transactional</code>. <strong>Attempt 2</strong> — disabled open-in-view. That
+      immediately surfaced a real <code>LazyInitializationException</code> the load test itself
+      caught mid-run, fixed with a targeted <code>Hibernate.initialize()</code> while the session
+      was still open.
+    </p></div></div>
+
+    <table class="minitable">
+      <thead><tr><th>Concurrent requests</th><th>Before</th><th>After</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td class="tabular b">0.48s</td><td class="tabular a">0.34s</td></tr>
+        <tr><td>40</td><td class="tabular b">0.80s</td><td class="tabular a">0.37s</td></tr>
+        <tr><td>100</td><td class="tabular b">1.74s</td><td class="tabular a">0.84s</td></tr>
+      </tbody>
+    </table>
+    <span class="delta">−52 to −54% at concurrency · batching pattern eliminated</span>
+
+    <div class="note"><span class="k">What actually mattered</span>Not "split the transaction" — <code>open-in-view</code> can silently undo that split, and turning it off means auditing every lazy field touched outside a <code>@Transactional</code> method.</div>
+  </section>
+
+  <!-- ================= CASE 05 ================= -->
+  <section class="case" id="case-05">
+    <div class="case-head"><span class="case-no tabular">CASE 05</span><span class="chip high">High</span></div>
+    <h2>Overselling / race condition on <code>products.stock</code></h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      Stock decrement reads the current value, checks it in Java, then writes a computed absolute
+      value back. Concurrent requests can all read the same pre-decrement stock before any of them
+      commits — Hibernate's <code>UPDATE</code> is a blind overwrite, not a relative expression.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      No atomicity across the read and the write. Reproduced directly: seeded <code>stock = 10</code>,
+      fired 20 concurrent orders. All 20 read stock = 10, all 20 passed the check, all 20 computed
+      "9" independently — whichever commit landed last simply overwrote the row with its own stale 9.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      One atomic, conditional statement:
+      <code>UPDATE products SET stock = stock - :qty WHERE id = :id AND stock &gt;= :qty</code> —
+      evaluated against the current committed row, not a stale in-memory value.
+    </p></div></div>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before · stock=10, 20 concurrent</span><span class="big tabular">20 / 20 oversold</span><span class="cap">final stock: 9 (should be 0)</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After · same reproduction</span><span class="big tabular">0 oversold</span><span class="cap">10 fulfilled, 10 × 409 Conflict, final stock: 0</span></div>
+    </div>
+    <span class="delta">100% over capacity → exactly correct · no added latency</span>
+  </section>
+
+  <!-- ================= CASE 06 ================= -->
+  <section class="case" id="case-06">
+    <div class="case-head"><span class="case-no tabular">CASE 06</span><span class="chip medium">Medium</span></div>
+    <h2>No caching for a hot read path</h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      <code>GET /api/products/{id}</code> hits Postgres on every call, even for the same ID
+      requested over and over — a classic hot path (product pages, cart re-reads).
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>No caching layer between the controller and the database.</p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Redis + <code>@Cacheable</code>, JSON serialization (not JDK — stays inspectable via
+      <code>redis-cli</code>), 5-minute TTL.
+    </p></div></div>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before · 50 sequential, same id</span><span class="big tabular">46–50 queries</span><span class="cap">0.719s total</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After · cache warm</span><span class="big tabular">0 queries</span><span class="cap">0.612s total</span></div>
+    </div>
+    <span class="delta">−100% DB round-trips · −15% latency</span>
+
+    <div class="note"><span class="k">Honest reading</span>Against a local Postgres already at sub-millisecond query times, request/response and JSON overhead dominate — so the latency win here is modest. The real win is DB load reduction, which would translate into a much larger latency win over a real network-hop database.</div>
+  </section>
+
+  <!-- ================= CASE 07 ================= -->
+  <section class="case" id="case-07">
+    <div class="case-head"><span class="case-no tabular">CASE 07</span><span class="chip medium">Medium</span></div>
+    <h2>Synchronous side effect on order creation</h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      A simulated ~250ms order-confirmation notification is sent synchronously, blocking the HTTP
+      response, right after the order is already <code>PAID</code> in the database.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      A side effect unrelated to the transactional outcome is bolted onto the same request/response
+      cycle as that outcome.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Publish an <code>OrderCreatedEvent</code> to Kafka instead — <code>KafkaTemplate.send()</code>
+      enqueues and returns immediately. A separate <code>@KafkaListener</code> sends the
+      notification on its own thread, confirmed via the log timestamp landing
+      <em>after</em> the HTTP response had already returned.
+    </p></div></div>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before · single request</span><span class="big tabular">0.58s</span><span class="cap">20 concurrent: 0.667s</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After · single request</span><span class="big tabular">0.335s</span><span class="cap">20 concurrent: 0.436s</span></div>
+    </div>
+    <span class="delta">−42% single request · −35% at concurrency</span>
+  </section>
+
+  <!-- ================= CASE 08 ================= -->
+  <section class="case" id="case-08">
+    <div class="case-head"><span class="case-no tabular">CASE 08</span><span class="chip high">High</span></div>
+    <h2>Thread pool vs. DB connection pool mismatch</h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      Tomcat's default 200-thread pool is 10× the intentionally small 20-connection Hikari pool.
+      A burst near thread-pool capacity leaves most threads blocked waiting on Hikari — and
+      <code>/actuator/health</code>, which needs a thread but no DB connection, has to queue
+      behind them.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      Tomcat's thread pool has no awareness of the connection pool underneath it. Reproduced with
+      <code>ab -n 300 -c 300</code> — <code>hikaricp.connections.pending</code> confirmed
+      <strong>179–180 threads</strong> blocked on the 20-connection pool for roughly the first
+      second of each burst.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Moved Actuator to its own port (<code>management.server.port</code>) — its own embedded
+      Tomcat connector, its own thread pool, independent of the app's.
+    </p></div></div>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before</span><span class="big tabular">shared pool</span><span class="cap">health check queues behind app traffic</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After</span><span class="big tabular">isolated pool</span><span class="cap">kept answering + reporting live metrics through every burst</span></div>
+    </div>
+    <span class="delta">Structural fix — actuator can no longer be starved of a worker thread</span>
+
+    <div class="note"><span class="k">Honest reading</span>The connections-pending metric peaked at ~180 either way (expected — pool size didn't change), and occasional multi-second health-check spikes still occurred after the fix, most likely from JVM-wide GC/JIT pauses a thread-pool split can't isolate. Documented as a real limit, not smoothed over: the verified scope of this fix is thread-pool isolation, not a blanket latency guarantee under load.</div>
+  </section>
+
+  <!-- ================= CASE 09 ================= -->
+  <section class="case" id="case-09">
+    <div class="case-head"><span class="case-no tabular">CASE 09</span><span class="chip medium">Medium</span></div>
+    <h2>Loading full result sets into memory</h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      A revenue-by-status report calls <code>findAll()</code>, materializing every row of
+      <code>orders</code> as a full JPA entity just to sum a handful of numbers by status.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      Aggregating in the application instead of asking the database, which already has an
+      index-aware planner and doesn't need to serialize thousands of objects across the wire.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      One JPQL query: <code>SELECT o.status, SUM(o.totalAmount), COUNT(o) FROM Order o GROUP BY
+      o.status</code>. Measured allocation via <code>jvm.gc.memory.allocated</code> — a cumulative
+      counter, chosen because raw "heap used" bounced around unpredictably as G1GC reclaimed
+      garbage between measurements.
+    </p></div></div>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before</span><span class="big tabular">24–46 MB</span><span class="cap">allocated per call · 0.13–0.29s</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After</span><span class="big tabular">~0 MB</span><span class="cap">below measurable resolution · 0.009–0.013s</span></div>
+    </div>
+    <span class="delta">10–20× faster · doesn't scale with table size at all</span>
+  </section>
+
+  <!-- ================= CASE 10 ================= -->
+  <section class="case" id="case-10">
+    <div class="case-head"><span class="case-no tabular">CASE 10</span><span class="chip medium">Medium</span></div>
+    <h2>Slow aggregation queries at scale</h2>
+
+    <div class="field"><span class="k">Symptom</span><div class="v"><p>
+      A daily-revenue report filters by <code>created_at</code>, which has no supporting index
+      (only the customer-scoped composite from Case 02). Bulk-loaded 500,000 additional rows
+      (523,501 total) so the date-range filter's selectivity would be realistic.
+    </p></div></div>
+
+    <div class="field"><span class="k">Root cause</span><div class="v"><p>
+      No index for filtering by date range alone — every row has to be read and checked
+      regardless of how small the actual result is.
+    </p></div></div>
+
+    <div class="field"><span class="k">Treatment</span><div class="v"><p>
+      Plain index on <code>orders(created_at)</code>.
+    </p></div></div>
+
+    <pre class="readout"><span class="dim">-- before: Parallel Seq Scan, 2 workers, 523,501 rows
+Execution Time: 37.223 ms
+
+-- after: Bitmap Index Scan on idx_orders_created_at</span>
+Execution Time: 22.3–24.3 ms  <span class="dim">(3 warm-cache runs)</span></pre>
+
+    <div class="vitals-strip">
+      <div class="stat before"><span class="tag">Before</span><span class="big tabular">37.2 ms</span><span class="cap">parallel sequential scan</span></div>
+      <div class="arrow">→</div>
+      <div class="stat after"><span class="tag">After</span><span class="big tabular">~23 ms</span><span class="cap">bitmap index scan</span></div>
+    </div>
+    <span class="delta">−38% query time · gap widens as the table grows</span>
+
+    <div class="note"><span class="k">Honest reading</span>End-to-end response time via the actual endpoint stayed ~19–20ms before and after — HTTP/JSON overhead dominates the ~13ms the query saved at this scale. Real at the SQL layer; not yet visible end-to-end, the same pattern as Case 06.</div>
+  </section>
+
+  <!-- ================= METHODOLOGY ================= -->
+  <section class="method">
+    <h2>How this was measured</h2>
+    <p class="lede">
+      Every number on this page came from an instrument, not an estimate. Picking the right one —
+      and catching when the wrong one was lying — was half the work.
+    </p>
+    <div class="tools">
+      <div class="tool"><span class="name">EXPLAIN ANALYZE</span><p>Query plans and real execution times for Cases 02, 03, 10 — repeated 3× where cold buffer cache produced a misleading first reading.</p></div>
+      <div class="tool"><span class="name">hibernate.generate_statistics</span><p>Exact JDBC statement counts for Cases 01 and 06, where the point was query <em>count</em>, not just latency.</p></div>
+      <div class="tool"><span class="name">Apache Bench (ab)</span><p>Single-process concurrent load for Case 08 — switched to it after discovering that spawning hundreds of separate <code>curl</code> processes was itself a source of client-side noise.</p></div>
+      <div class="tool"><span class="name">jvm.gc.memory.allocated</span><p>Cumulative allocation counter for Case 09 — chosen over "heap used," which bounced unpredictably as G1GC reclaimed garbage between reads.</p></div>
+      <div class="tool"><span class="name">Gatling</span><p>Repeatable load-test suite for Cases 03, 06, 10 under real concurrency — run as an isolated Gradle subproject after its Netty version conflicted with Spring Boot's own dependency management.</p></div>
+      <div class="tool"><span class="name">Prometheus + Grafana</span><p>Live dashboard on Hikari pool state, JVM heap, GC pause time, and HTTP latency — the same <code>hikaricp.connections.pending</code> metric that confirmed Case 08's root cause.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= SIGN-OFF ================= -->
+  <section class="signoff">
+    <div class="stamp">All 10 cases closed</div>
+    <p>
+      Ten problems, introduced on purpose, diagnosed with the same tools a real incident would
+      require, treated, and re-measured against the original reproduction — including the two
+      cases where the first fix didn't work and the three where the honest result was more modest
+      than hoped. That's the standard this report holds itself to.
+    </p>
+    <a class="repo" href="https://github.com/Alex3195/backend-doctor-demo" target="_blank" rel="noopener">View the repository →</a>
+    <div class="foot">backend-doctor-demo · a case-study backend, not a production system</div>
+  </section>
+
+</div>
