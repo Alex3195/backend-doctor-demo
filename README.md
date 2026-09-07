@@ -16,10 +16,12 @@ deliberately, measured, explained, fixed, and measured again. See
 - Flyway (schema migrations)
 - Redis (caching, Phase 4)
 - Kafka (async processing, Phase 4)
+- Prometheus + Grafana (metrics, Phase 5)
+- Gatling (load testing, Phase 5 — see `load-tests/`, a separate Gradle subproject)
 
 ## Running locally
 
-1. Start Postgres (and Redis, unused for now):
+1. Start the infrastructure (Postgres, Redis, Kafka, Prometheus, Grafana):
 
    ```bash
    docker compose up -d
@@ -50,7 +52,11 @@ deliberately, measured, explained, fixed, and measured again. See
    for the orders, then one additional `SELECT ... FROM customers WHERE id = ?`
    **per distinct customer** in the result set. That's Issue #001.
 
-## Status: all 10 catalog problems fixed — Phase 5 next
+5. Metrics dashboard: http://localhost:3000 (Grafana, anonymous
+   access). Load testing: `./gradlew :load-tests:gatlingRun`. See
+   `docs/observability.md` for details.
+
+## Status: all 10 catalog problems fixed, Phase 5 done
 
 - [x] Project structure
 - [x] Schema (customers, products, orders, order_items, payments)
@@ -66,7 +72,7 @@ deliberately, measured, explained, fixed, and measured again. See
 - [x] Phase 4: Kafka async processing (order confirmation notification)
 - [x] Phase 4/5: fix loading full result sets into memory (DB-side aggregation)
 - [x] Phase 5: fix slow aggregation queries at scale (index on `orders.created_at`)
-- [ ] Phase 5: load testing (JMeter/Gatling), metrics, Grafana
+- [x] Phase 5: load testing (Gatling), metrics (Prometheus + Grafana) — see `docs/observability.md`
 - [ ] Phase 6: before/after benchmark write-up, polished audit report
 
 ## Problems catalog (planned)
