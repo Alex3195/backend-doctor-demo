@@ -42,5 +42,33 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
 
+  # Wired in for Phase 5 metrics -- see docs/audit/000-overview.md.
+  # Scrapes the app's /actuator/prometheus (port 8081, see Issue #008).
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    container_name: backend-doctor-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      # host.docker.internal works out of the box on Docker Desktop
+      # (Mac/Windows); this line makes it resolve on Linux too.
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    container_name: backend-doctor-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards/json
+    depends_on:
+      - prometheus
+
 volumes:
   backend_doctor_pg_data:
