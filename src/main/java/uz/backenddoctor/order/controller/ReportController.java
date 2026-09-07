@@ -22,4 +22,12 @@ public class ReportController {
     public List<RevenueByStatus> getRevenueByStatus() {
         return reportService.getRevenueByStatusInMemory();
     }
+
+    /**
+     * Fix #009 -- see ReportService.getRevenueByStatusAggregated().
+     */
+    @GetMapping("/api/reports/revenue-by-status/aggregated")
+    public List<RevenueByStatus> getRevenueByStatusAggregated() {
+        return reportService.getRevenueByStatusAggregated();
+    }
 }

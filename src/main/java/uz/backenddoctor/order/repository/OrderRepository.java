@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import uz.backenddoctor.order.dto.OrderSummary;
+import uz.backenddoctor.order.dto.RevenueByStatus;
 import uz.backenddoctor.order.entity.Order;
 
 import java.util.List;
@@ -52,4 +53,13 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT new uz.backenddoctor.order.dto.OrderSummary(o.id, c.fullName, o.status, o.totalAmount, o.createdAt) " +
             "FROM Order o JOIN o.customer c")
     List<OrderSummary> findAllOrderSummaries();
+
+    /**
+     * Fix #009 -- database-side aggregation. Postgres computes the sums
+     * from the table/index directly; the application only ever holds
+     * one result row per distinct status, never the underlying orders.
+     */
+    @Query("SELECT new uz.backenddoctor.order.dto.RevenueByStatus(o.status, SUM(o.totalAmount), COUNT(o)) " +
+            "FROM Order o GROUP BY o.status ORDER BY o.status")
+    List<RevenueByStatus> findRevenueByStatus();
 }

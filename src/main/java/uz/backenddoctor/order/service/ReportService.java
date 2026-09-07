@@ -44,4 +44,12 @@ public class ReportService {
                 .sorted(Comparator.comparing(RevenueByStatus::status))
                 .toList();
     }
+
+    /**
+     * Fix #009 -- database-side aggregation. See
+     * OrderRepository.findRevenueByStatus().
+     */
+    public List<RevenueByStatus> getRevenueByStatusAggregated() {
+        return orderRepository.findRevenueByStatus();
+    }
 }

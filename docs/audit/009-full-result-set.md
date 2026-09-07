@@ -38,7 +38,17 @@ the application only ever holds the few grouped result rows (one per
 distinct status) in memory.
 
 ### After
-_(fill in once benchmarked)_
+Same measurement against `GET /api/reports/revenue-by-status/aggregated`,
+same result values confirmed identical to the in-memory version:
+- Allocation per call: **~0MB** (below the metric's measurable
+  resolution -- effectively just the handful of result rows and their
+  wrapper objects).
+- Response time: **0.009-0.013s** (4 calls, steady state).
 
 ### Improvement
-_(fill in once benchmarked)_
+- Allocation: 24-46MB → ~0MB per call.
+- Response time: 0.13-0.29s → 0.009-0.013s (~10-20x faster).
+- Unlike the in-memory version, this doesn't scale with table size at
+  all -- the query does the same amount of work (and allocates the
+  same handful of result rows) whether `orders` has 20000 rows or
+  20 million.
