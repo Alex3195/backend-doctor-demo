@@ -47,7 +47,8 @@ filtering by date range regardless of which customer placed the
 order.
 
 ### After
-Same `EXPLAIN ANALYZE` for `days=7`, same 523,501-row table, index in place:
+Migration `V3__add_orders_created_at_index.sql` adds the index. Same
+`EXPLAIN ANALYZE` for `days=7`, same 523,501-row table:
 ```
 GroupAggregate (actual time=19.267..23.634 rows=8 loops=1)
   -> Sort
@@ -56,17 +57,31 @@ GroupAggregate (actual time=19.267..23.634 rows=8 loops=1)
             Heap Blocks: exact=4524
             -> Bitmap Index Scan on idx_orders_created_at
                   Index Cond: (created_at >= (now() - '7 days'::interval))
-Execution Time: 24.003 ms
+Execution Time: 22.3-24.3ms (3 repeated runs, buffer cache warm)
 ```
 Plan changed from a 2-worker parallel sequential scan to a single-process
-Bitmap Index Scan.
+Bitmap Index Scan. (First run right after creating the index measured
+46.3ms -- slower than the warm runs, because the relevant heap pages
+weren't yet in Postgres's shared buffer cache; repeated the query 3x
+to confirm the real, cache-warm number rather than reporting a cold-cache
+outlier.)
+
+Measured via the actual endpoint (`GET /api/reports/daily-revenue?days=7`):
+steady state stayed at ~19-20ms, same as before the fix. At this data
+scale, HTTP/JSON/Spring MVC overhead dominates the ~13ms the query
+itself saved, so the improvement is real at the SQL level but not
+visible end-to-end here -- the same pattern seen in Issue #006's cache
+benchmark.
 
 ### Improvement
-- Execution time: 37.2ms → 24.0ms (~35% faster) at the current
-  523,501-row scale.
+- Query execution time: 37.2ms → ~23ms average (~38% faster) at the
+  current 523,501-row scale.
 - More importantly, this doesn't scale with table size the way the
   sequential scan does: the index scan's cost tracks the *result*
   size (~43,000 matching rows), not the *table* size, so the gap
   between the two plans only widens as the table keeps growing past
   this point -- the sequential scan gets linearly slower, the index
   scan barely changes.
+- Honest caveat: at this scale, the win is at the database layer, not
+  yet visible in end-to-end response time -- worth knowing rather than
+  overclaiming, the same way Issue #006 was.
