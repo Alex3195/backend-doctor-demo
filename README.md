@@ -79,7 +79,7 @@ deliberately, measured, explained, fixed, and measured again. See
 | 6 | No caching for hot read path | Fixed (`issue-6-no-caching-fix`) |
 | 7 | Synchronous side effects on order creation | Fixed (`issue-7-sync-side-effects-fix`) |
 | 8 | Thread pool vs. DB connection pool mismatch | Fixed (`issue-8-pool-mismatch-fix`) |
-| 9 | Loading full result sets into memory | Not yet introduced |
+| 9 | Loading full result sets into memory | Fixed (`issue-9-full-result-set-fix`) |
 | 10 | Slow aggregation queries at scale | Not yet introduced |
 
 ## Why this project exists
