@@ -6,7 +6,9 @@ used to demonstrate real-world backend performance and architecture problems
 
 This is a portfolio / case-study project. Each problem is introduced
 deliberately, measured, explained, fixed, and measured again. See
-`docs/audit/` for the write-ups.
+`docs/audit/` for the individual write-ups, or open
+[`docs/report.html`](docs/report.html) for the consolidated before/after
+report covering all ten.
 
 ## Stack
 
@@ -56,7 +58,7 @@ deliberately, measured, explained, fixed, and measured again. See
    access). Load testing: `./gradlew :load-tests:gatlingRun`. See
    `docs/observability.md` for details.
 
-## Status: all 10 catalog problems fixed, Phase 5 done
+## Status: all 6 phases complete
 
 - [x] Project structure
 - [x] Schema (customers, products, orders, order_items, payments)
@@ -73,7 +75,7 @@ deliberately, measured, explained, fixed, and measured again. See
 - [x] Phase 4/5: fix loading full result sets into memory (DB-side aggregation)
 - [x] Phase 5: fix slow aggregation queries at scale (index on `orders.created_at`)
 - [x] Phase 5: load testing (Gatling), metrics (Prometheus + Grafana) — see `docs/observability.md`
-- [ ] Phase 6: before/after benchmark write-up, polished audit report
+- [x] Phase 6: before/after benchmark write-up, polished audit report — see `docs/audit/` for the per-issue write-ups this report consolidates
 
 ## Problems catalog (planned)
 
