@@ -50,7 +50,7 @@ deliberately, measured, explained, fixed, and measured again. See
    for the orders, then one additional `SELECT ... FROM customers WHERE id = ?`
    **per distinct customer** in the result set. That's Issue #001.
 
-## Status: Phase 3 in progress
+## Status: all 10 catalog problems fixed — Phase 5 next
 
 - [x] Project structure
 - [x] Schema (customers, products, orders, order_items, payments)
@@ -64,6 +64,8 @@ deliberately, measured, explained, fixed, and measured again. See
 - [x] Phase 3: fix thread pool vs. connection pool mismatch (actuator on a separate port)
 - [x] Phase 4: Redis caching for a hot read path
 - [x] Phase 4: Kafka async processing (order confirmation notification)
+- [x] Phase 4/5: fix loading full result sets into memory (DB-side aggregation)
+- [x] Phase 5: fix slow aggregation queries at scale (index on `orders.created_at`)
 - [ ] Phase 5: load testing (JMeter/Gatling), metrics, Grafana
 - [ ] Phase 6: before/after benchmark write-up, polished audit report
 
@@ -80,7 +82,7 @@ deliberately, measured, explained, fixed, and measured again. See
 | 7 | Synchronous side effects on order creation | Fixed (`issue-7-sync-side-effects-fix`) |
 | 8 | Thread pool vs. DB connection pool mismatch | Fixed (`issue-8-pool-mismatch-fix`) |
 | 9 | Loading full result sets into memory | Fixed (`issue-9-full-result-set-fix`) |
-| 10 | Slow aggregation queries at scale | Not yet introduced |
+| 10 | Slow aggregation queries at scale | Fixed (`issue-10-slow-aggregation-fix`) |
 
 ## Why this project exists
 
